@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Data with PyScript</title>
+
+    <!-- Include PyScript -->
+    <link rel="stylesheet" href="https://pyscript.net/alpha/pyscript.css">
+    <script defer src="https://pyscript.net/alpha/pyscript.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            text-align: center;
+        }
+
+        /* Header Styling */
+        header {
+            width: 100%;
+            padding: 20px;
+            background-color: #2a9d8f;
+            color: white;
+        }
+
+        h1 {
+            font-size: 2em;
+            margin-top: 10px;
+        }
+
+        /* Form Styling */
+        form {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 400px;
+            margin-top: 20px; /* Adds space between the header and the form */
+        }
+
+        label {
+            font-size: 1.1em;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        input[type="button"] {
+            background-color: #2a9d8f;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            width: 100%;
+        }
+
+        input[type="button"]:hover {
+            background-color: #21867a;
+        }
+
+        /* Responsive Design */
+        @media screen and (max-width: 768px) {
+            h1 {
+                font-size: 1.5em;
+            }
+
+            form {
+                width: 95%;
+            }
+        }
+    </style>
+     <!-- Include the regular JavaScript -->
+    <script>
+        // Wait for the page to fully load before executing any code
+        window.onload = function() {
+            // Function to handle sending the message
+            function sendMessage(event) {
+                event.preventDefault();  // Prevent form submission
+
+                // Collect student data from the form
+                var name = document.getElementById('name').value;
+                var number = document.getElementById('number').value;
+
+                // Validate phone number (ensure it includes country code)
+                if (!number.startsWith('+')) {
+                    alert("Phone number must include the country code (e.g., +1234567890).");
+                    return;
+                }
+
+                // Send data to the Flask backend via fetch
+                fetch('http://127.0.0.1:5000/send-message', {  // Change the URL to Flask's backend
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        name: name,
+                        number: number
+                    })
+                })
+                .then(response => response.json())  // Parse the JSON response from Flask
+                .then(data => {
+                    // Handle the response and display success message
+                    if (data.message) {
+                        document.getElementById('studentForm').innerHTML = `Message sent successfully to ${name}!`;
+                    }
+                    if (data.error) {
+                        alert("Error: " + data.error);  // Display error message from Flask
+                    }
+                })
+                .catch(error => {
+                    // Handle any errors in the fetch request
+                    console.error("Error sending message:", error);
+                    alert("Error: " + error.message);
+                });
+            }
+
+            // Attach the sendMessage function to the button click
+            document.getElementById("sendButton").onclick = sendMessage;
+        };
+    </script>
+</head>
+<body>
+    <h1>Enter Student Information</h1>
+    
+    <!-- Form to collect student info -->
+    <form id="studentForm">
+        <img src="logo-primary.png" alt="logo">
+        <label for="name">Student Name:</label><br>
+        <input type="text" id="name" name="name" required><br><br>
+        
+        <label for="number">Phone Number (with country code):</label><br>
+        <input type="text" id="number" name="number" required><br><br>
+        
+        <input type="button" id="sendButton" value="Send Message">
+    </form>
+</body>
+</html>
